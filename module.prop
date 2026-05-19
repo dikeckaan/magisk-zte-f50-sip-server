@@ -1,0 +1,7 @@
+id=sip-server
+name=Embedded SIP Server (call/SMS bridge)
+version=v1.0.0
+versionCode=1
+author=kaandikec
+description=Tiny static SIP server (~2.4 MB, statically linked Go) that runs on the F50 itself on UDP/5060. F50SipBridge app and your companion phone/laptop register here; SMS-over-SIP and call signaling are forwarded between them. Auth via MD5 Digest; localhost registrations (the on-device app) bypass auth. Users + passwords in /data/sip-server/sip_users.conf. Requires bin-utils v1.3.0+.
+updateJson=https://raw.githubusercontent.com/dikeckaan/magisk-zte-f50-sip-server/main/update.json
