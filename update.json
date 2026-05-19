@@ -2,5 +2,6 @@
     "version": "v0.1.0-dev",
     "versionCode": 1,
     "zipUrl": "https://github.com/dikeckaan/magisk-zte-f50-sip-server/releases/download/v0.1.0-dev/sip-server-v0.1.0-dev.zip",
+    "sha256": "a53efbfe5e9209335d3e044292b8346a89a051f203a5705407681f1984d50a93",
     "changelog": "https://raw.githubusercontent.com/dikeckaan/magisk-zte-f50-sip-server/main/CHANGELOG.md"
 }
