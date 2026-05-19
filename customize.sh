@@ -12,6 +12,20 @@ if [ ! -r /data/adb/modules/bin-utils/lib/common.sh ] \
     abort "  ❌ bin-utils v1.3.0+ required (lib/common.sh missing)."
 fi
 
+# Soft dependency: ims-voice-fix. SIP bridge observes cellular calls via
+# TelephonyCallback; if the F50's IMS apk tears them down on screen-off,
+# the bridge sees a 20-second blip instead of an actual call. Warn loudly
+# but allow install — the user may have a different mitigation.
+if [ ! -d /data/adb/modules/ims-voice-fix ] \
+   && [ ! -d /data/adb/modules_update/ims-voice-fix ]; then
+    ui_print "  ⚠ ims-voice-fix not installed."
+    ui_print "    Cellular calls on this F50 SKU may drop after ~20 s"
+    ui_print "    (screen-off → IMS handler → call teardown)."
+    ui_print "    Install ims-voice-fix first if you want calls observed"
+    ui_print "    by this SIP bridge to last beyond the screen timeout."
+    ui_print "    /install_module ims-voice-fix  (status: under_development)"
+fi
+
 mkdir -p /data/sip-server
 chmod 755 /data/sip-server
 
