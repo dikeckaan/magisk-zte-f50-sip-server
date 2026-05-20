@@ -82,6 +82,41 @@ sleep 20
     done
 ) &
 
+# ─── cellular call-keepalive daemon ──────────────────────────────────────
+# The ZTE F50 is shipped as a "data terminal" SKU; its Spreadtrum CP
+# firmware silently disconnects active GSM calls after ~16-20 s of
+# uninterrupted voice state. The historical workaround in the call-forward
+# project was a pair of scripts (callkeep + audiokeep) that periodically
+# poked the modem with AT commands; that activity reset the CP-side voice
+# timer and the call survived. We do the same here with a single tight
+# loop: while Telecom reports any non-IDLE call state, send AT+CLCC every
+# 3 seconds. AT+CLCC is a safe, side-effect-free query that returns the
+# current call list — the modem treating it as "voice activity present"
+# is the entire mechanism.
+SENDAT=$(command -v sendat 2>/dev/null) || SENDAT=/system/bin/sendat
+if [ -x "$SENDAT" ]; then
+    (
+        while true; do
+            # dumpsys telephony.registry exposes mCallState as an int:
+            #   0 IDLE, 1 ACTIVE, 2 HOLDING, 3 DIALING, 4 ALERTING,
+            #   5 INCOMING, 6 WAITING, 7 DISCONNECTED, 8 DISCONNECTING
+            # We poke the modem whenever it isn't IDLE or DISCONNECT*.
+            cs=$(dumpsys telephony.registry 2>/dev/null \
+                 | awk -F= '/mForegroundCallState=/{print $2; exit}' \
+                 | tr -d ' \r\n')
+            case "$cs" in
+                1|2|3|4|5|6)
+                    "$SENDAT" -c "AT+CLCC" >/dev/null 2>&1
+                    ;;
+            esac
+            sleep 3
+        done
+    ) &
+    log_line "call-keepalive daemon started (3s AT+CLCC while mForegroundCallState in 1..6)"
+else
+    log_line "call-keepalive daemon: sendat not found, skipping (calls will drop at ~20s)"
+fi
+
 # Block on the background jobs so this script (and its 'init' parent)
 # stays alive — Magisk's late_start service launcher expects a
 # foreground process to track for the module.
